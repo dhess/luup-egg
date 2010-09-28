@@ -1,19 +1,20 @@
-#+TITLE: A Chicken Scheme extension for MiOS home automation gateways.
+* luup: a Chicken Scheme extension for MiOS home automation gateways.
 
-This Chicken Scheme extension, named =luup=, provides support for
-communicating with MiOS devices, such as the [[http://micasaverde.com/][Mi Casa Verde Vera]] home
-automation gateway.
+  This Chicken Scheme extension, named =luup=, provides support for
+  communicating with MiOS devices, such as the [[http://micasaverde.com/][Mi Casa Verde Vera]] home
+  automation gateway.
 
-MiOS gateways expose two network APIs: UPnP and an [[http://www.ietf.org/rfc/rfc3986.txt][RFC 3986-compliant]]
-URI query interface that is essentially just an HTTP request wrapper
-around their Luup ([[http://wiki.micasaverde.com/index.php/Luup_Intro][Lua-UPnP]]) scripting and plug-in environment. This
-extension uses the simpler HTTP interface, which is documented [[http://wiki.micasaverde.com/index.php/Luup_Requests][here]].
+  MiOS gateways expose two network APIs: UPnP, and an [[http://www.ietf.org/rfc/rfc3986.txt][RFC
+  3986-compliant]] URI query interface that is essentially just an HTTP
+  request wrapper around their Luup ([[http://wiki.micasaverde.com/index.php/Luup_Intro][Lua-UPnP]]) scripting and plug-in
+  environment. This extension uses the simpler HTTP interface, which
+  is documented [[http://wiki.micasaverde.com/index.php/Luup_Requests][here]].
 
 * Why?
 
   I want to remotely control my Vera gateway using simple command-line
   utilities that can be incorporated into more complex shell scripts,
-  Applescripts, etc. Because MiOS gateways expose an HTTP control
+  AppleScripts, etc. Because MiOS gateways expose an HTTP control
   interface, it's certainly possible to build these simple utilities
   using just =curl= or =wget=; but short of hard-coding device
   numbers, scene IDs, and the like, you really need to be able to
@@ -68,8 +69,8 @@ extension uses the simpler HTTP interface, which is documented [[http://wiki.mic
 
 ** =(get-status)=
 
-   This function returns an s-expression very similar to the JSON
-   returned by the MiOS gateway in response to a [[http://wiki.micasaverde.com/index.php/Luup_Requests#lu_status][=lu_status=
+   This function returns an s-expression that corresponds to the JSON
+   returned by the MiOS gateway in response to a [[http://wiki.micasaverde.com/index.php/Luup_Requests#lu_status][lu_status
    request]]. It's not particularly useful on its own, but the extension
    uses this function internally to discover the gateway's scenes, and
    I decided to expose it so that people could poke around and see the
@@ -86,7 +87,7 @@ extension uses the simpler HTTP interface, which is documented [[http://wiki.mic
    scene you've defined using the MiOS gateway's "scene wizard" user
    interface.
 
-   Returns the scene as an alist, or #f if there's no scene by that
+   Returns the scene as an alist, or =#f= if there's no scene by that
    name. Typically, you will use the returned scene as an argument to
    other scene-related functions.
 
@@ -98,8 +99,7 @@ extension uses the simpler HTTP interface, which is documented [[http://wiki.mic
 
 ** =(active-scene? SCENE)=
 
-   Returns =#t= if =SCENE= is active, where =SCENE= is a scene alist,
-   otherwise =#f=.
+   Returns =#t= if =SCENE= (a scene alist) is active, otherwise =#f=.
 
 ** =(run-scene SCENE)=
 
@@ -113,16 +113,14 @@ extension uses the simpler HTTP interface, which is documented [[http://wiki.mic
    appears to deactivate the scene. (The latter functionality is not
    yet exposed by this extension's API.)
 
-   Also note that there's neither a "toggle scene" nor an automatic
-   "run opposite scene" function in this extension's API, even if
-   you've created both a scene and its opposite in the gateway's web
-   UI. There's no straightforward way to determine programmatically
-   the relationship between two scenes using just the MiOS gateway's
-   scene information, so this sort of functionality is too
-   configuration-dependent to embed in a general API.  However, you
-   should find it relatively easy to use this extension to write a
-   "scene toggle" utility that's customized to your particular scene
-   configuration.
+   Even if you've created both a scene and its opposite in the
+   gateway's web UI, there's no straightforward way to determine
+   programmatically the relationship between two scenes using just the
+   MiOS gateway's scene information, so any sort of "run opposite
+   scene" functionality is too configuration-dependent to embed in a
+   general API like this one.  However, you should find it relatively
+   easy to use this extension to implement something like this that's
+   customized to your particular scene configuration.
 
 * Bundled utilities
 
@@ -141,11 +139,11 @@ extension uses the simpler HTTP interface, which is documented [[http://wiki.mic
     (e.g., no such scene exists), it prints an error message to stderr
     and exits with status 1.
 
-  (Note that with a bit of scripting (bash, Applescript, etc.), you
+  (Note that with a bit of scripting (bash, AppleScript, etc.), you
   could easily create a "scene toggle" command using these two
   executables and some knowledge of your scene configuration.)
 
-* Known issues/bugs
+* Known issues and bugs
 
   - Err... the base URI of the MiOS gateway is set to the hostname of
     the Vera gateway on my home network, and there's currently no way
@@ -154,14 +152,14 @@ extension uses the simpler HTTP interface, which is documented [[http://wiki.mic
   - Functions should check for unexpected results and raise exceptions
     when these occur.
 
-* TODO
+* To do
 
   - Parameterize the base URI value.
   - Add support for some sort of rc-file to the bundled command-line
-    executables so that the user can specify a default base URI value.
+    executables, so that the user can specify a default base URI value.
   - Add actions for individual devices. Currently the extension really
-    only supports running scenes, but it would be nice to have
-    finer-grained control over devices. Device control probably
+    only works at the scene level, but it would be nice to have
+    fine-grained control over devices, too. Device control probably
     entails creating commands that are specific to the device classes
     supported by MiOS: simple on/off switches, dimmers, thermostats,
     etc.

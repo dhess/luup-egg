@@ -7,9 +7,9 @@ build:
 	chicken-install -no-install
 
 uninstall:
-	chicken-uninstall luup
-	chicken-uninstall run-scene
-	chicken-uninstall scene-status
+	chicken-uninstall -force luup
+	chicken-uninstall -force run-scene
+	chicken-uninstall -force scene-status
 
 clean:
 	rm -f *.c *.o *.so *.import.scm

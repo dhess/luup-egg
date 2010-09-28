@@ -1,0 +1,4 @@
+*.import.scm
+*.so
+*.o
+*~

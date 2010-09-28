@@ -1,0 +1,11 @@
+;;; -*- mode: Scheme; -*-
+
+(compile -s -O2 -d1 luup.scm -j luup)
+(compile -s luup.import.scm -O2 -d0)
+(compile -c -O2 -d1 luup.scm -unit luup -j luup)
+
+(install-extension
+ 'luup
+ '("luup.so" "luup.import.so" "luup.o")
+ '((version "0.1")
+   (static "luup.o")))

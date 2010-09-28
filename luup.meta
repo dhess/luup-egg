@@ -1,0 +1,11 @@
+;;; -*- mode: Scheme; -*-
+;;;
+;;; luup egg.
+
+((egg "luup.egg")
+ (synopsis "Send Luup requests to MiOS devices via HTTP")
+ (author "Drew Hess <dhess-src@bothan.net>")
+ (license "MIT")
+ (category web)
+ (needs uri-common http-client json data-structures)
+ (hidden))

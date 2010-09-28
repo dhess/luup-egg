@@ -7,5 +7,13 @@
 (install-extension
  'luup
  '("luup.so" "luup.import.so" "luup.o")
- '((version "0.1")
+ '((version 0.1)
    (static "luup.o")))
+
+;;; Bundled utilities.
+
+(compile -O2 -d1 run-scene.scm)
+(compile -O2 -d1 scene-status.scm)
+
+(install-program 'run-scene "run-scene" '((version 0.1)))
+(install-program 'scene-status "scene-status" '((version 0.1)))

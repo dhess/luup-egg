@@ -1,4 +1,11 @@
+# build output
 *.import.scm
 *.so
 *.o
+
+# programs
+run-scene
+scene-status
+
+# Emacs
 *~

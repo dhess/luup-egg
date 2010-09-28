@@ -1,0 +1,171 @@
+#+TITLE: A Chicken Scheme extension for MiOS home automation gateways.
+
+This Chicken Scheme extension, named =luup=, provides support for
+communicating with MiOS devices, such as the [[http://micasaverde.com/][Mi Casa Verde Vera]] home
+automation gateway.
+
+MiOS gateways expose two network APIs: UPnP and an [[http://www.ietf.org/rfc/rfc3986.txt][RFC 3986-compliant]]
+URI query interface that is essentially just an HTTP request wrapper
+around their Luup ([[http://wiki.micasaverde.com/index.php/Luup_Intro][Lua-UPnP]]) scripting and plug-in environment. This
+extension uses the simpler HTTP interface, which is documented [[http://wiki.micasaverde.com/index.php/Luup_Requests][here]].
+
+* Why?
+
+  I want to remotely control my Vera gateway using simple command-line
+  utilities that can be incorporated into more complex shell scripts,
+  Applescripts, etc. Because MiOS gateways expose an HTTP control
+  interface, it's certainly possible to build these simple utilities
+  using just =curl= or =wget=; but short of hard-coding device
+  numbers, scene IDs, and the like, you really need to be able to
+  parse the MiOS gateway's JSON responses in order to create a
+  flexible and maintainable system. This extension provides a
+  mechanism for building these utilities using Chicken Scheme, while
+  also hiding the (frankly, rather ugly) details of the MiOS HTTP
+  control interface.
+
+* Requirements
+
+  - A Luup-enabled MiOS gateway (tested with a Mi Casa Verde Vera
+    running UI4 1.1.1047).
+  - Chicken Scheme 4.x (tested on 4.6.0)
+  - The =uri-common=, =http-client=, =json=, and =data-structures=
+    Chicken Scheme extensions.
+
+* License
+
+  The luup extension is distributed under the [[http://en.wikipedia.org/wiki/MIT_License][MIT license]].
+
+* Building the extension
+
+  The distribution comes with a Makefile, so a simple =make install=
+  should suffice to build the extension and install it into your
+  Chicken Scheme extension repository, assuming your paths and
+  permissions are set properly. If you need to use an alternate
+  installation path, or specify any other options, you can run
+  =chicken-install= by hand in the extension source code directory.
+
+  During the build process, the extension's setup file should
+  automatically install all the necessary Chicken Scheme extension
+  dependencies.
+
+* API
+
+  Currently, only a very limited amount of Luup HTTP functionality is
+  covered by this extension - basically, just the bits that I can test
+  in my extremely small home Z-Wave environment. Over time, as I add
+  more devices, I plan to add more functionality to the extension.
+
+  I will assume you're familiar with the basic behavior and
+  terminology of a MiOS gateway: scenes, devices, actions, etc.
+
+  Any s-expressions returned by the extension's functions are, unless
+  otherwise stated, a direct Scheme representation of the MiOS
+  gateway's JSON response to a request. JSON objects returned in the
+  gateway's HTTP reply are returned to the caller as Scheme alists,
+  and JSON arrays in the reply are returned as Scheme lists. Other
+  JSON types are represented in Scheme as you'd expect (strings,
+  numbers, booleans, etc.).
+
+** =(get-status)=
+
+   This function returns an s-expression very similar to the JSON
+   returned by the MiOS gateway in response to a [[http://wiki.micasaverde.com/index.php/Luup_Requests#lu_status][=lu_status=
+   request]]. It's not particularly useful on its own, but the extension
+   uses this function internally to discover the gateway's scenes, and
+   I decided to expose it so that people could poke around and see the
+   gateway's state.
+
+** =(get-scenes)=
+
+   Returns a list of scenes. Each scene in the list is, in turn, an
+   alist containing the scene's properties: its name, its status, etc.
+
+** =(find-scene NAME)=
+
+   Find a scene by name. =NAME= is a string whose value is the name of a
+   scene you've defined using the MiOS gateway's "scene wizard" user
+   interface.
+
+   Returns the scene as an alist, or #f if there's no scene by that
+   name. Typically, you will use the returned scene as an argument to
+   other scene-related functions.
+
+** =(scene-id SCENE)=
+
+   Returns the numeric ID of =SCENE= (a scene alist as returned by,
+   e.g, =find-scene=). This is not a particularly useful function at
+   the moment.
+
+** =(active-scene? SCENE)=
+
+   Returns =#t= if =SCENE= is active, where =SCENE= is a scene alist,
+   otherwise =#f=.
+
+** =(run-scene SCENE)=
+
+   Run the scene specified by =SCENE=, a scene alist.
+
+   Note that there is no "stop scene" functionality in MiOS. If you
+   want to deactivate a scene, you'll either need to activate an
+   "opposite" scene that you've defined in the MiOS scene wizard
+   (e.g., define both a "TV on" and a "TV off" scene); or you can
+   change the state of a device that's used in the scene, which
+   appears to deactivate the scene. (The latter functionality is not
+   yet exposed by this extension's API.)
+
+   Also note that there's neither a "toggle scene" nor an automatic
+   "run opposite scene" function in this extension's API, even if
+   you've created both a scene and its opposite in the gateway's web
+   UI. There's no straightforward way to determine programmatically
+   the relationship between two scenes using just the MiOS gateway's
+   scene information, so this sort of functionality is too
+   configuration-dependent to embed in a general API.  However, you
+   should find it relatively easy to use this extension to write a
+   "scene toggle" utility that's customized to your particular scene
+   configuration.
+
+* Bundled utilities
+
+  This extension ships with two command-line executables:
+
+  - =run-scene= takes a scene name argument and tells the MiOS gateway
+    to run that scene. (If the scene is already active, the command is
+    effectively ignored.) =run-scene= exits with status 0 if the
+    command was successful, otherwise it prints an error message to
+    stderr and exits with status 1.
+
+  - =scene-status= takes a scene name argument. If a scene with that
+    name exists on the MiOS gateway, =scene-status= prints "active" to
+    stdout if the scene is active, or prints "inactive" if the scene
+    is inactive; and then exits with status 0. If there's an error
+    (e.g., no such scene exists), it prints an error message to stderr
+    and exits with status 1.
+
+  (Note that with a bit of scripting (bash, Applescript, etc.), you
+  could easily create a "scene toggle" command using these two
+  executables and some knowledge of your scene configuration.)
+
+* Known issues/bugs
+
+  - Err... the base URI of the MiOS gateway is set to the hostname of
+    the Vera gateway on my home network, and there's currently no way
+    to change it without modifying the source code!
+  - The API is currently very limited.
+  - Functions should check for unexpected results and raise exceptions
+    when these occur.
+
+* TODO
+
+  - Parameterize the base URI value.
+  - Add support for some sort of rc-file to the bundled command-line
+    executables so that the user can specify a default base URI value.
+  - Add actions for individual devices. Currently the extension really
+    only supports running scenes, but it would be nice to have
+    finer-grained control over devices. Device control probably
+    entails creating commands that are specific to the device classes
+    supported by MiOS: simple on/off switches, dimmers, thermostats,
+    etc.
+
+* Contact
+
+  Feel free to contact me with questions or concerns [[mailto:dhess-src@bothan.net][here]].

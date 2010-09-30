@@ -7,5 +7,5 @@
  (author "Drew Hess <dhess-src@bothan.net>")
  (license "MIT")
  (category web)
- (needs uri-common http-client json data-structures)
+ (needs uri-common http-client json args)
  (hidden))
